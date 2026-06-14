@@ -681,3 +681,4 @@ insert into batches (name, start_year, end_year) values
   ('Batch 2020-2024', 2020, 2024),
   ('Batch 2021-2025', 2021, 2025)
 on conflict do nothing;
+
