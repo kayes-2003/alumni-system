@@ -20,11 +20,16 @@ export interface ProfileUpdatePayload {
   is_profile_public?: boolean;
 }
 
+export type ProfileWithRelations = Profile & {
+  departments?: { name: string; code: string } | null;
+  batches?: { name: string; start_year: number; end_year: number } | null;
+};
+
 export function useProfile(targetId?: string) {
   const { user, refreshProfile } = useAuth();
   const id = targetId ?? user?.id;
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<ProfileWithRelations | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -34,24 +39,20 @@ export function useProfile(targetId?: string) {
     if (!id) return;
     setLoading(true);
     setError(null);
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data, error } = await (supabase.from("profiles") as any)
       .select("*, departments(name, code), batches(name, start_year, end_year)")
       .eq("id", id)
-      .single();
+      .maybeSingle();
     setLoading(false);
     if (error) setError(error.message);
-    else setProfile(data as Profile);
+    else setProfile(data as ProfileWithRelations);
   }, [id]);
 
   const updateProfile = async (payload: ProfileUpdatePayload): Promise<boolean> => {
     if (!id) return false;
     setSaving(true);
     setError(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("profiles") as any)
-      .update(payload)
-      .eq("id", id);
+    const { error } = await (supabase.from("profiles") as any).update(payload).eq("id", id);
     setSaving(false);
     if (error) { setError(error.message); return false; }
     await fetchProfile();
@@ -61,44 +62,19 @@ export function useProfile(targetId?: string) {
 
   const uploadAvatar = async (file: File): Promise<string | null> => {
     if (!id) return null;
-
-    // Validate
-    if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file.");
-      return null;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Avatar must be smaller than 2MB.");
-      return null;
-    }
-
+    if (!file.type.startsWith("image/")) { setError("Please upload an image file."); return null; }
+    if (file.size > 2 * 1024 * 1024) { setError("Avatar must be smaller than 2MB."); return null; }
     setUploadingAvatar(true);
     setError(null);
-
     const ext = file.name.split(".").pop();
     const path = `${id}/avatar.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, file, { upsert: true, contentType: file.type });
-
-    if (uploadError) {
-      setError(uploadError.message);
-      setUploadingAvatar(false);
-      return null;
-    }
-
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) { setError(uploadError.message); setUploadingAvatar(false); return null; }
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("profiles") as any)
-      .update({ avatar_url: publicUrl })
-      .eq("id", id);
-
+    await (supabase.from("profiles") as any).update({ avatar_url: publicUrl }).eq("id", id);
     await fetchProfile();
     if (!targetId) await refreshProfile();
-
     setUploadingAvatar(false);
     return publicUrl;
   };
@@ -106,10 +82,7 @@ export function useProfile(targetId?: string) {
   const removeAvatar = async (): Promise<boolean> => {
     if (!id) return false;
     setSaving(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("profiles") as any)
-      .update({ avatar_url: null })
-      .eq("id", id);
+    const { error } = await (supabase.from("profiles") as any).update({ avatar_url: null }).eq("id", id);
     setSaving(false);
     if (error) { setError(error.message); return false; }
     await fetchProfile();
@@ -117,16 +90,5 @@ export function useProfile(targetId?: string) {
     return true;
   };
 
-  return {
-    profile,
-    loading,
-    saving,
-    uploadingAvatar,
-    error,
-    setError,
-    fetchProfile,
-    updateProfile,
-    uploadAvatar,
-    removeAvatar,
-  };
+  return { profile, loading, saving, uploadingAvatar, error, setError, fetchProfile, updateProfile, uploadAvatar, removeAvatar };
 }
