@@ -22,9 +22,8 @@ export function NotificationBlast({ open, onClose, users, onSent }: Notification
   const [form, setForm] = useState({ title: "", message: "", target: "all" });
   const [sending, setSending] = useState(false);
 
-  const targetCount = form.target === "all"
-    ? users.length
-    : users.filter(u => u.role === form.target).length;
+  const targetCount =
+    form.target === "all" ? users.length : users.filter(u => u.role === form.target).length;
 
   const handleSend = async () => {
     if (!form.title || !form.message) return;
@@ -74,10 +73,7 @@ export function NotificationBlast({ open, onClose, users, onSent }: Notification
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleSend}
-            disabled={sending || !form.title || !form.message}
-          >
+          <Button onClick={handleSend} disabled={sending || !form.title || !form.message}>
             {sending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             <Bell className="h-4 w-4 mr-1.5" />
             Send to {targetCount} users

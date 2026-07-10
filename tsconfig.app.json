@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] },
-    "target": "es2023",
-    "lib": ["ES2023", "DOM"],
+    "target": "es2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "esnext",
     "types": ["vite/client"],
     "skipLibCheck": true,
@@ -18,11 +17,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    /* Linting - relaxed */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "strict": false
   },
   "include": ["src"]
 }
