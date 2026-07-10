@@ -272,4 +272,4 @@ export type Membership = Database["public"]["Tables"]["memberships"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type Post = Database["public"]["Tables"]["posts"]["Row"];
-export type Notification = Database["public"]["Tables"]["notifications"]["Row"];s
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
